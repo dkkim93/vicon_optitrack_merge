@@ -20,20 +20,13 @@ class Data(object):
         self._add_to_dict(self.vicon_quats, 'data_1', quat)
 
         # Data 2
-        position = np.array([1.57233373329, -0.831640912928, 0.075050328159]) # x y z
-        self._add_to_dict(self.vicon_positions, 'data_2', position)
-
-        quat = np.array([0.999677851675, 0.00428298586649, 0.00157737908313, 0.0249671940125])  # w x y z
-        self._add_to_dict(self.vicon_quats, 'data_2', quat)
-
-        # Data 3
         position = np.array([1.54398658889, -0.410228881554, 1.16198586478]) # x y z
         self._add_to_dict(self.vicon_positions, 'data_3', position)
 
         quat = np.array([0.999571524024, -0.000650802997162, 0.00282766945741, -0.0291264330444]) # w x y z
         self._add_to_dict(self.vicon_quats, 'data_3', quat)
 
-        # Data 4
+        # Data 3
         position = np.array([0.661849322701, -1.56916648039, 1.17596197592]) # x y z
         self._add_to_dict(self.vicon_positions, 'data_4', position)
 
@@ -49,20 +42,13 @@ class Data(object):
         self._add_to_dict(self.opti_quats, 'data_1', quat)
 
         # Data 2
-        position = np.array([-0.973524987698, 10.5920934677, 0.0921021774411]) # x y z
-        self._add_to_dict(self.opti_positions, 'data_2', position)
-
-        quat = np.array([0.691749215126, 0.00779610266909, 0.00198522815481, -0.722093045712]) # w x y z
-        self._add_to_dict(self.opti_quats, 'data_2', quat)
-
-        # Data 3
         position = np.array([-0.56702709198, 10.5713949203, 1.17146623135]) # x y z
         self._add_to_dict(self.opti_positions, 'data_3', position)
 
         quat = np.array([0.652602374554, 0.0024211734999, 0.00287404307164, -0.757691323757]) # w x y z
         self._add_to_dict(self.opti_quats, 'data_3', quat)
 
-        # Data 4
+        # Data 3
         position = np.array([-1.6251026392, 11.5489768982, 1.18096828461]) # x y z
         self._add_to_dict(self.opti_positions, 'data_4', position)
 
