@@ -11,6 +11,19 @@ class Data(object):
         self._add_opti_data()
         self._check_err()
 
+    """
+        Data 1: 
+        - Vicon: data_yes_adjsut/2018-02-18-23-59-26.bag
+        - Opti: data_yes_adjust/2018-02-18-23-59-15.bag
+
+        Data 2: 
+        - Vicon: data_yes_adjsut/2018-02-19-00-01-43.bag
+        - Opti: data_yes_adjust/2018-02-19-00-01-43.bag
+
+        Data 3: 
+        - Vicon: data_yes_adjsut/2018-02-19-00-02-24.bag
+        - Opti: data_yes_adjust/2018-02-19-00-02-24.bag
+    """
     def _add_vicon_data(self):
         # Data 1
         position = np.array([1.27146427388, 0.0982186137085, 0.0617510854658]) # x y z
