@@ -12,8 +12,14 @@ sudo pip install pyquaternion
 ### DATA ###
 
 Please download data and put it `data/` folder.
-Data can be found at: TODO.
+Data can be found at: `https://drive.google.com/drive/folders/1k5D_k6xLRdH1TWRTjlZ8tqHJ-GOyM9Zb?usp=sharing`.
 
+### RESULT ###
+Transformation between Vicon to Opti:
+```
+Position (x, y, z): 12.0174229, 1.11216997, -0.0175561 ]
+Quaternion (qx, qy, qz, qw): -0.00083867, 0.00084894, 0.7387037, 0.67402662
+```
 
 ### CONTRIBUTION GUIDELINES ###
 
@@ -27,8 +33,6 @@ git add <list files you want to commit>
 git commit -m "<commit description>"
 git push -u origin <branch_name>
 ```
-* Go on bitbucket, and select "Create a pull request". Select your new branch, to be merged into the master bra    nch, and write a description of what you changed. Submit the request.
-* Use the issue tracker if a bug is found in the master branch.
 
 ### CONTACT ###
 
