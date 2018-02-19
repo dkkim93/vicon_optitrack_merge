@@ -6,9 +6,8 @@ This repository provides ROS package to merge two tracking systems, Vicon and Op
 
 * Install prerequisites
 ```
+sudo pip install pyquaternion
 ```
-
-* Move to your ROS workspace 
 
 ### DATA ###
 
