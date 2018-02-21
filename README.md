@@ -21,10 +21,10 @@ Position (x, y, z): 12.0174229, 1.11216997, -0.0175561
 Quaternion (qx, qy, qz, qw): -0.00083867, 0.00084894, 0.7387037, 0.67402662
 ```
 
-Further optimized transformation between Vicon to Opti (based on trajectory):
+Further optimized transformation between Vicon to Opti (based on a trajectory):
 ```
-Position (x, y, z): 
-Quaternion (qx, qy, qz, qw): 
+Position (x, y, z): 12.0343504107, 1.039922734, 0.131514931278
+Quaternion (qx, qy, qz, qw): -0.0115611628667, 0.00209857996667, 0.7371048285, 0.675638377167
 ```
 
 ### CONTRIBUTION GUIDELINES ###
