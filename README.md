@@ -15,10 +15,16 @@ Please download data and put it `data/` folder.
 Data can be found at: `https://drive.google.com/drive/folders/1k5D_k6xLRdH1TWRTjlZ8tqHJ-GOyM9Zb?usp=sharing`.
 
 ### RESULT ###
-Transformation between Vicon to Opti:
+Transformation between Vicon to Opti (based on 3 data points):
 ```
-Position (x, y, z): 12.0174229, 1.11216997, -0.0175561 ]
+Position (x, y, z): 12.0174229, 1.11216997, -0.0175561
 Quaternion (qx, qy, qz, qw): -0.00083867, 0.00084894, 0.7387037, 0.67402662
+```
+
+Further optimized transformation between Vicon to Opti (based on trajectory):
+```
+Position (x, y, z): 
+Quaternion (qx, qy, qz, qw): 
 ```
 
 ### CONTRIBUTION GUIDELINES ###
@@ -37,3 +43,5 @@ git push -u origin <branch_name>
 ### CONTACT ###
 
 * Dong-Ki Kim (dkkim93@mit.edu)
+* Jesus Tordesillas (jtorde@mit.edu)
+* Shayegan Omidshafiei (shayegan@mit.edu)
