@@ -1,138 +1,114 @@
 import rosbag
 import numpy as np
 import matplotlib.pyplot as plt
+from data import Data
 from transformation import Transformation
+from draw import Draw
 from acl_msgs.msg import ViconState
 from geometry_msgs.msg import PoseStamped
 from decimal import Decimal
 
-T_obj = Transformation()
-T_vicon_to_opti = T_obj.convert_to_T_matrix(
-    position=np.array([12.0174229, 1.11216997, -0.0175561]),
-    quat=np.array([0.67402662, -0.00083867, 0.00084894, 0.7387037]))
+def return_timestamp(data):
+    nsec = str(data.header.stamp.nsecs)
+    if len(nsec) == 7:
+        nsec = str(00) + nsec # Append 0 for digits that missed 0 in front
+    if len(nsec) == 8:
+        nsec = str(0) + nsec # Append 0 for digits that missed 0 in front
 
-vicon_timestamps, opti_timestamps = [], []
+    ts = str(data.header.stamp.secs) + "." + nsec
+    if len(ts) != 20:
+        RuntimeError("Timestamp does not match!")
 
-vicon_position_x, opti_position_x = [], []
-vicon_position_y, opti_position_y = [], []
-vicon_position_z, opti_position_z = [], []
+    return Decimal(ts)
 
-vicon_quat_w, opti_quat_w = [], []
-vicon_quat_x, opti_quat_x = [], []
-vicon_quat_y, opti_quat_y = [], []
-vicon_quat_z, opti_quat_z = [], []
+def vicon_cb(data, data_obj):
+    ts = return_timestamp(data)
 
-def vicon_cb(data):
-    timestamp = str(data.header.stamp.secs) + "." + str(data.header.stamp.nsecs)
-    timestamp = Decimal(timestamp)
+    # Put timestamp, position, and quat into list and append
+    vicon_list = [ts, data.pose.position.x, data.pose.position.y, data.pose.position.z,
+                  data.pose.orientation.w, data.pose.orientation.x, data.pose.orientation.y,
+                  data.pose.orientation.z]
+    data_obj.add_vicon_data(vicon_list)
 
-    vicon_timestamps.append(timestamp)
-
-    vicon_position_x.append(data.pose.position.x)
-    vicon_position_y.append(data.pose.position.y)
-    vicon_position_z.append(data.pose.position.z)
-
-    vicon_quat_w.append(data.pose.orientation.w)
-    vicon_quat_x.append(data.pose.orientation.x)
-    vicon_quat_y.append(data.pose.orientation.y)
-    vicon_quat_z.append(data.pose.orientation.z)
-
-def opti_cb(data):
-    # Timestamp
-    timestamp = str(data.header.stamp.secs) + "." + str(data.header.stamp.nsecs)
-    timestamp = Decimal(timestamp)
+def opti_cb(data, T_vicon_to_opti, data_obj):
+    ts = return_timestamp(data)
 
     # position and quat
     position = np.array([data.pose.position.x, 
                          data.pose.position.y, 
                          data.pose.position.z])
-    quat = np.array([data.pose.orientation.w,
-                     data.pose.orientation.x,
-                     data.pose.orientation.y,
-                     data.pose.orientation.z])
+    quat     = np.array([data.pose.orientation.w,
+                         data.pose.orientation.x,
+                         data.pose.orientation.y,
+                         data.pose.orientation.z])
 
+    # Transformation
     T_opti_to_wand = T_obj.convert_to_T_matrix(position, quat)
     T_vicon_to_wand = np.dot(T_vicon_to_opti, T_opti_to_wand)
 
     opti_position, opti_quat = \
         T_obj.convert_T_matrix_to_position_and_quat(T_vicon_to_wand)
 
-    opti_timestamps.append(timestamp)
-
-    opti_position_x.append(opti_position[0])
-    opti_position_y.append(opti_position[1])
-    opti_position_z.append(opti_position[2])
-
-    opti_quat_w.append(opti_quat[0])
-    opti_quat_x.append(opti_quat[1])
-    opti_quat_y.append(opti_quat[2])
-    opti_quat_z.append(opti_quat[3])
+    opti_list = [ts, opti_position[0], opti_position[1], opti_position[2],
+                 opti_quat[0], opti_quat[1], opti_quat[2], opti_quat[3]]
+    data_obj.add_opti_data(opti_list)
 
 if __name__ == "__main__":
+    # Class initialization
+    data_obj = Data()
+    T_obj    = Transformation()
+    draw_obj = Draw()
+
+    T_vicon_to_opti = T_obj.return_T_vicon_to_opti()
+
+    # Read data and store 
     bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-02-18.bag")
-
-    for topic, msg, t in bag.read_messages(topics=["/Robot_2/pose", "/dongki/vicon"]):
+    # bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-10-05.bag")
+    vicon_topic = "/dongki/vicon"
+    opti_topic  = "/Robot_2/pose"
+    for topic, msg, t in bag.read_messages(topics=[opti_topic, vicon_topic]):
         if topic == "/dongki/vicon":
-            vicon_cb(msg)
+            vicon_cb(msg, data_obj)
         elif topic == "/Robot_2/pose":
-            opti_cb(msg)
+            opti_cb(msg, T_vicon_to_opti, data_obj)
         else:
-            RuntimeError("Non valid topic")
+            RuntimeError("Non-valid topic found.")
+    data_obj.set_vicon()
+    data_obj.set_opti()
 
-    plt.figure()
-    plt.title('position_x')
-    plt.xlabel('Timestamp')
-    plt.ylabel('In meter')
-    plt.plot(opti_timestamps, opti_position_x, label='opti')
-    plt.plot(vicon_timestamps, vicon_position_x, label='vicon')
-    plt.legend()
+    # Draw plot
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_x,
+                       data_obj.opti_ts, data_obj.opti_x,
+                       'Position x', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('position_y')
-    plt.xlabel('Timestamp')
-    plt.ylabel('In meter')
-    plt.plot(opti_timestamps, opti_position_y, label='opti')
-    plt.plot(vicon_timestamps, vicon_position_y, label='vicon')
-    plt.legend()
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_y,
+                       data_obj.opti_ts, data_obj.opti_y,
+                       'Position y', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('position_z')
-    plt.xlabel('Timestamp')
-    plt.ylabel('In meter')
-    plt.plot(opti_timestamps, opti_position_z, label='opti')
-    plt.plot(vicon_timestamps, vicon_position_z, label='vicon')
-    plt.legend()
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_z,
+                       data_obj.opti_ts, data_obj.opti_z,
+                       'Position z', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('quat_x')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Quaternion')
-    plt.plot(opti_timestamps, opti_quat_x, label='opti')
-    plt.plot(vicon_timestamps, vicon_quat_x, label='vicon')
-    plt.legend()
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qw,
+                       data_obj.opti_ts, data_obj.opti_qw,
+                       'Quaternion w', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('quat_y')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Quaternion')
-    plt.plot(opti_timestamps, opti_quat_y, label='opti')
-    plt.plot(vicon_timestamps, vicon_quat_y, label='vicon')
-    plt.legend()
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qx,
+                       data_obj.opti_ts, data_obj.opti_qx,
+                       'Quaternion x', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('quat_z')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Quaternion')
-    plt.plot(opti_timestamps, opti_quat_z, label='opti')
-    plt.plot(vicon_timestamps, vicon_quat_z, label='vicon')
-    plt.legend()
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qy,
+                       data_obj.opti_ts, data_obj.opti_qy,
+                       'Quaternion y', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
 
-    plt.figure()
-    plt.title('quat_w')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Quaternion')
-    plt.plot(opti_timestamps, opti_quat_w, label='opti')
-    plt.plot(vicon_timestamps, vicon_quat_w, label='vicon')
-    plt.legend()
-
+    draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qz,
+                       data_obj.opti_ts, data_obj.opti_qz,
+                       'Quaternion z', 'Timestamp (UNIX)', 'Meter',
+                       'Vicon', 'OptiTrack')
     plt.show()
