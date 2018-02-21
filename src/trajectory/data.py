@@ -1,4 +1,5 @@
 import numpy as np
+from transformation import Transformation
 
 class Data(object):
     def __init__(self):
@@ -22,11 +23,29 @@ class Data(object):
         self.opti_qy     = []
         self.opti_qz     = []
 
+        self.opti_orig_lists = [] # Original (i.e., opti to wand) before transformation
+        self.opti_orig_ts    = []
+        self.opti_orig_x     = []
+        self.opti_orig_y     = []
+        self.opti_orig_z     = []
+        self.opti_orig_qw    = []
+        self.opti_orig_qx    = []
+        self.opti_orig_qy    = []
+        self.opti_orig_qz    = []
+
+        T_vicon_to_opti_positions = []
+         T_vicon_to_opti_quats    = []
+
+        self.T_obj = Transformation()
+
     def add_vicon_data(self, data):
         self.vicon_lists.append(data)
 
     def add_opti_data(self, data):
         self.opti_lists.append(data)
+
+    def add_opti_orig_data(self, data):
+        self.opti_orig_lists.append(data)
 
     def set_vicon(self):
         self.vicon_ts = np.asarray([data[0] for data in self.vicon_lists])
@@ -48,6 +67,16 @@ class Data(object):
         self.opti_qy = np.asarray([data[6] for data in self.opti_lists])
         self.opti_qz = np.asarray([data[7] for data in self.opti_lists])
 
+    def set_opti_orig(self):
+        self.opti_orig_ts = np.asarray([data[0] for data in self.opti_orig_lists])
+        self.opti_orig_x  = np.asarray([data[1] for data in self.opti_orig_lists])
+        self.opti_orig_y  = np.asarray([data[2] for data in self.opti_orig_lists])
+        self.opti_orig_z  = np.asarray([data[3] for data in self.opti_orig_lists])
+        self.opti_orig_qw = np.asarray([data[4] for data in self.opti_orig_lists])
+        self.opti_orig_qx = np.asarray([data[5] for data in self.opti_orig_lists])
+        self.opti_orig_qy = np.asarray([data[6] for data in self.opti_orig_lists])
+        self.opti_orig_qz = np.asarray([data[7] for data in self.opti_orig_lists])
+
     def find_nearest_idx(self, array, value):
         idx = (np.abs(array-value)).argmin()
         return idx
@@ -62,9 +91,53 @@ class Data(object):
             x_diff = self.diff(self.vicon_x[vicon_idx], self.opti_x[opti_idx])
             y_diff = self.diff(self.vicon_y[vicon_idx], self.opti_y[opti_idx])
             z_diff = self.diff(self.vicon_z[vicon_idx], self.opti_z[opti_idx])
+            qw_diff = self.diff(self.vicon_qw[vicon_idx], self.opti_qw[opti_idx])
+            qx_diff = self.diff(self.vicon_qx[vicon_idx], self.opti_qx[opti_idx])
+            qy_diff = self.diff(self.vicon_qy[vicon_idx], self.opti_qy[opti_idx])
+            qz_diff = self.diff(self.vicon_qz[vicon_idx], self.opti_qz[opti_idx])
 
-            if (x_diff <= 0.03) and (y_diff <= 0.03) and (z_diff <= 0.03):
-                print '\nqw:', self.vicon_qw[vicon_idx], 'vs', self.opti_qw[opti_idx]
-                print 'qx:', self.vicon_qx[vicon_idx], 'vs', self.opti_qx[opti_idx]
-                print 'qy:', self.vicon_qy[vicon_idx], 'vs', self.opti_qy[opti_idx]
-                print 'qz:', self.vicon_qz[vicon_idx], 'vs', self.opti_qz[opti_idx]
+            if x_diff <= 0.03 and y_diff <= 0.03 and z_diff <= 0.03 and \
+               qw_diff <= 1 and qx_diff <= 1 and qy_diff <=1 and qz_diff <= 1:
+                # T_vicon_to_wand
+                T_vicon_to_wand = self.T_obj.convert_to_T_matrix(
+                    position=np.array([self.vicon_x[vicon_idx],
+                                       self.vicon_y[vicon_idx],
+                                       self.vicon_z[vicon_dix]),
+                    quat=np.array([self.vicon_qw[vicon_idx],
+                                   self.vicon_qx[vicon_idx],
+                                   self.vicon_qy[vicon_idx],
+                                   self.vicon_qz[vicon_idx]))
+
+                # T_opti_to_wand
+                T_opti_to_wand = self.T_obj.convert_to_T_matrix(
+                    position=np.array([self.opti_orig_x[opti_idx],
+                                       self.opti_orig_y[opti_idx],
+                                       self.opti_orig_z[opti_dix]),
+                    quat=np.array([self.opti_orig_qw[opti_idx],
+                                   self.opti_orig_qx[opti_idx],
+                                   self.opti_orig_qy[opti_idx],
+                                   self.opti_orig_qz[opti_idx]))
+
+                # T_wand_to_opti
+                T_wand_to_opti = self.T_obj.inverse_matrix(T_opti_to_wand)
+
+                # T_vicon_to_opti
+                T_vicon_to_opti = np.dot(T_vicon_to_wand, T_wand_to_opti)
+                
+                T_vicon_to_opti_position, T_vicon_to_opti_quat = \
+                    self.T_obj.convert_T_matrix_to_position_and_quat(T_vicon_to_opti)
+                print 'T_vicon_to_opti: \nPos (x y z): {}\nQuat (w x y z): {}'.format(
+                    T_vicon_to_opti_position, T_vicon_to_opti_quat)  
+                
+                # Save result
+                T_vicon_to_opti_positions.append(T_vicon_to_opti_position)
+                T_vicon_to_opti_quats.append(T_vicon_to_opti_quat)
+
+                # print '\nqw diff:', qw_diff
+                # print 'qx diff:', qx_diff
+                # print 'qy diff:', qy_diff
+                # print 'qz diff:', qz_diff
+                # print 'qw :', self.vicon_qw[vicon_idx], 'vs', self.opti_qw[opti_idx]
+                # print 'qx:', self.vicon_qx[vicon_idx], 'vs', self.opti_qx[opti_idx] 
+                # print 'qy:', self.vicon_qy[vicon_idx], 'vs', self.opti_qy[opti_idx]
+                # print 'qz:', self.vicon_qz[vicon_idx], 'vs', self.opti_qz[opti_idx]

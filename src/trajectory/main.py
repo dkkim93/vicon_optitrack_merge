@@ -42,6 +42,11 @@ def opti_cb(data, T_vicon_to_opti, data_obj):
                          data.pose.orientation.y,
                          data.pose.orientation.z])
 
+    opti_orig_list = [ts, data.pose.position.x, data.pose.position.y, data.pose.position.z,
+                      data.pose.orientation.w, data.pose.orientation.x, data.pose.orientation.y,
+                      data.pose.orientation.z]
+    data_obj.add_opti_orig_data(opti_orig_list)
+
     # Transformation
     T_opti_to_wand = T_obj.convert_to_T_matrix(position, quat)
     T_vicon_to_wand = np.dot(T_vicon_to_opti, T_opti_to_wand)
@@ -75,6 +80,8 @@ if __name__ == "__main__":
             RuntimeError("Non-valid topic found.")
     data_obj.set_vicon()
     data_obj.set_opti()
+    data_obj.set_opti_orig()
+    import sys; sys.exit()
 
     # Further optimize T
     data_obj.optimize_T()
