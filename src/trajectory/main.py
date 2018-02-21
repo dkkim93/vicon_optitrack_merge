@@ -62,8 +62,8 @@ if __name__ == "__main__":
     T_vicon_to_opti = T_obj.return_T_vicon_to_opti()
 
     # Read data and store 
-    bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-02-18.bag")
-    # bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-10-05.bag")
+    # bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-02-18.bag")
+    bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-10-05.bag")
     vicon_topic = "/dongki/vicon"
     opti_topic  = "/Robot_2/pose"
     for topic, msg, t in bag.read_messages(topics=[opti_topic, vicon_topic]):
@@ -75,6 +75,9 @@ if __name__ == "__main__":
             RuntimeError("Non-valid topic found.")
     data_obj.set_vicon()
     data_obj.set_opti()
+
+    # Further optimize T
+    data_obj.optimize_T()
 
     # Draw plot
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_x,
