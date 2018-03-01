@@ -3,13 +3,21 @@ from pyquaternion import Quaternion
 
 class Transformation(object):
     def __init__(self):
-        self.T_vicon_to_opti_position = np.array([12.0174229, 
-                                                  1.11216997, 
-                                                  -0.0175561])
-        self.T_vicon_to_opti_quat = np.array([0.67402662, 
-                                              -0.00083867, 
-                                              0.00084894, 
-                                              0.7387037]) # w x y z
+        # self.T_vicon_to_opti_position = np.array([12.0174229, 
+        #                                           1.11216997, 
+        #                                           -0.0175561])
+        # self.T_vicon_to_opti_quat = np.array([0.67402662, 
+        #                                       -0.00083867, 
+        #                                       0.00084894, 
+        #                                       0.7387037]) # w x y z
+        # Optimized T
+        self.T_vicon_to_opti_position = np.array([12.0343504107, 
+                                                  1.039922734, 
+                                                  0.131514931278])
+        self.T_vicon_to_opti_quat = np.array([0.675638377167,
+                                              -0.0115611628667, 
+                                              0.00209857996667, 
+                                              0.7371048285])
         self.T_vicon_to_opti = self.convert_to_T_matrix(self.T_vicon_to_opti_position, 
                                                         self.T_vicon_to_opti_quat)
 

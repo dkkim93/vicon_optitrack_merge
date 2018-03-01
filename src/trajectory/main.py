@@ -8,6 +8,9 @@ from acl_msgs.msg import ViconState
 from geometry_msgs.msg import PoseStamped
 from decimal import Decimal
 
+OPTIMIZE_T_MODE = False
+ERROR_MODE = True
+
 def return_timestamp(data):
     nsec = str(data.header.stamp.nsecs)
     if len(nsec) == 7:
@@ -67,8 +70,8 @@ if __name__ == "__main__":
     T_vicon_to_opti = T_obj.return_T_vicon_to_opti()
 
     # Read data and store 
-    # bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-02-18.bag")
-    bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-10-05.bag")
+    bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-02-18.bag")
+    # bag = rosbag.Bag("../../data/data_trajectory/optitrack/2018-02-19-18-10-05.bag")
     vicon_topic = "/dongki/vicon"
     opti_topic  = "/Robot_2/pose"
     for topic, msg, t in bag.read_messages(topics=[opti_topic, vicon_topic]):
@@ -81,44 +84,53 @@ if __name__ == "__main__":
     data_obj.set_vicon()
     data_obj.set_opti()
     data_obj.set_opti_orig()
-    import sys; sys.exit()
 
     # Further optimize T
-    data_obj.optimize_T()
+    if OPTIMIZE_T_MODE:
+        data_obj.optimize_T()
+    if ERROR_MODE:
+        data_obj.error()
 
     # Draw plot
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_x,
                        data_obj.opti_ts, data_obj.opti_x,
+                       None, None,
                        'Position x', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_y,
                        data_obj.opti_ts, data_obj.opti_y,
+                       None, None,
                        'Position y', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_z,
                        data_obj.opti_ts, data_obj.opti_z,
+                       None, None,
                        'Position z', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qw,
-                       data_obj.opti_ts, data_obj.opti_qw,
-                       'Quaternion w', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       data_obj.opti_ts, -data_obj.opti_qw,
+                       None, None,
+                       'Quaternion w', 'Timestamp (UNIX)', 'Quaternion',
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qx,
-                       data_obj.opti_ts, data_obj.opti_qx,
-                       'Quaternion x', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       data_obj.opti_ts, -data_obj.opti_qx,
+                       None, None,
+                       'Quaternion x', 'Timestamp (UNIX)', 'Quaternion',
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qy,
-                       data_obj.opti_ts, data_obj.opti_qy,
-                       'Quaternion y', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       data_obj.opti_ts, -data_obj.opti_qy,
+                       None, None,
+                       'Quaternion y', 'Timestamp (UNIX)', 'Quaternion',
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
 
     draw_obj.draw_plot(data_obj.vicon_ts, data_obj.vicon_qz,
-                       data_obj.opti_ts, data_obj.opti_qz,
-                       'Quaternion z', 'Timestamp (UNIX)', 'Meter',
-                       'Vicon', 'OptiTrack')
+                       data_obj.opti_ts, -data_obj.opti_qz,
+                       None, None,
+                       'Quaternion z', 'Timestamp (UNIX)', 'Quaternion',
+                       'Vicon', 'OptiTrack', 'Data used for Optimization')
     plt.show()
